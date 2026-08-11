@@ -41,7 +41,12 @@ async function api(path, opts) {
   }
   return data;
 }
-const agentCall = (machineId, action, payload) => api('/api/agent', { method: 'POST', body: { machineId, action, payload } });
+// نتيجة /api/agent مغلّفة بشكل {ok, data: {...}} — نفكّها هون عشان كل الأماكن اللي تستخدم
+// agentCall تاخذ حقول النتيجة مباشرة (زي .dirs أو .backups) بدل ما تلف بـ .data يدويًا.
+const agentCall = async (machineId, action, payload) => {
+  const r = await api('/api/agent', { method: 'POST', body: { machineId, action, payload } });
+  return r.data || {};
+};
 
 /* ============ عناصر بيانية ============ */
 
