@@ -460,7 +460,8 @@ function sessionOf(req) {
 const ADMIN_ALLOWED = new Set([
   'state', 'stream', 'switch', 'release', 'console', 'command', 'password', 'logout',
   'server.start', 'server.stop', 'server.restart', 'server.command',
-  'stats', 'log.history', 'addons.list', 'backup.list', 'backup.create', 'props.read',
+  'stats', 'log.history', 'addons.list', 'addons.upload', 'addons.toggle', 'addons.delete',
+  'backup.list', 'backup.create', 'props.read',
 ]);
 
 /* الويب ====================================================== */
@@ -605,7 +606,7 @@ const web = http.createServer(async (req, res) => {
 
   /* ---- رفع المودات ---- */
   if (route === '/api/upload' && req.method === 'POST') {
-    if (user.role !== 'owner') return deny();
+    if (!allowed('addons.upload')) return deny();
     const machineId = url.searchParams.get('machine');
     const dir = url.searchParams.get('dir') || 'mods';
     const name = url.searchParams.get('name') || 'upload.jar';
