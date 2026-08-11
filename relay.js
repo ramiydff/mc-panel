@@ -611,6 +611,23 @@ const web = http.createServer(async (req, res) => {
     const name = url.searchParams.get('name') || 'upload.jar';
     const m = machineById(machineId);
     if (!m) return sendJSON(res, 404, { error: 'الجهاز غير موجود' });
+
+    if (RENDER_MODE) {
+      // وضع Render: ما فيه قناة بيانات TCP خام — نرفع الملف عبر قناة التحكم (base64) بدل ذلك.
+      const chunks = [];
+      let total = 0;
+      req.on('data', (c) => { total += c.length; if (total > 60 * 1024 * 1024) req.destroy(); else chunks.push(c); });
+      req.on('end', async () => {
+        try {
+          const data = Buffer.concat(chunks).toString('base64');
+          await agentRequest(machineId, 'addons.upload', { dir, name, data }, 60000);
+          logEvent('addon', `رفع ${name} إلى «${m.name}»`, user.username);
+          return sendJSON(res, 200, { ok: true });
+        } catch (e) { return sendJSON(res, 502, { error: e.message }); }
+      });
+      return;
+    }
+
     try {
       const chan = await openChannel(m, 'upload', { dir, name });
       req.pipe(chan);

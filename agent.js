@@ -544,6 +544,15 @@ async function handleRequest(msg) {
       case 'addons.list': return reply(true, { dirs: listAddons() });
       case 'addons.toggle': return reply(true, toggleAddon(payload.dir, payload.file));
       case 'addons.delete': return reply(true, deleteAddon(payload.dir, payload.file));
+      case 'addons.upload': {
+        const dir = ADDON_DIRS.includes(payload.dir) ? payload.dir : 'mods';
+        const target = path.join(conf.serverDir, dir);
+        ensureDir(target);
+        const name = path.basename(String(payload.name || 'upload.jar')).replace(/[^\w.\- ]/g, '_');
+        fs.writeFileSync(path.join(target, name), Buffer.from(String(payload.data || ''), 'base64'));
+        pushLog(`>> رُفع ${dir}/${name}`, 'panel');
+        return reply(true, { ok: true });
+      }
       case 'props.read': return reply(true, readProperties());
       case 'props.write': return reply(true, writeProperties(payload.patch || {}));
       case 'backup.list': return reply(true, { backups: listBackups() });
@@ -574,7 +583,15 @@ async function handleRequest(msg) {
 }
 
 function openDataChannel(connId, purpose, meta) {
-  const up = net.createConnection({ host: conf.relayHost, port: conf.relayPort });
+  // على وضع WebSocket (Render) ما فيه قناة بيانات TCP خام — الرفع يمر عبر قناة التحكم بدلها.
+  if (conf.relayWsUrl) return;
+  let up;
+  try {
+    up = net.createConnection({ host: conf.relayHost, port: conf.relayPort });
+  } catch (e) {
+    console.error('فشل فتح قناة البيانات:', e.message);
+    return;
+  }
   up.on('error', () => up.destroy());
   up.once('connect', () => {
     up.write(JSON.stringify({ type: 'data', machineId: conf.machineId, token: conf.token, connId }) + '\n');
