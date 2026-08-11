@@ -520,7 +520,8 @@ const web = http.createServer(async (req, res) => {
   }
 
   if (route === '/api/login' && req.method === 'POST') {
-    const ip = req.socket.remoteAddress || '?';
+    const forwarded = (req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+    const ip = forwarded || req.socket.remoteAddress || '?';
     const gate = loginAttempts.get(ip);
     if (gate?.until > Date.now()) return sendJSON(res, 429, { error: 'محاولات كثيرة — انتظر دقيقة' });
     const { username, password } = await readBody(req);
@@ -802,7 +803,8 @@ if (RENDER_MODE) {
           try { ws.send(JSON.stringify({ type: 'error', message: 'مفتاح غير صحيح' })); } catch (_) {}
           return ws.close();
         }
-        const ip = (req.socket.remoteAddress || '').replace(/^::ffff:/, '');
+        const forwarded = (req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+        const ip = (forwarded || req.socket.remoteAddress || '').replace(/^::ffff:/, '');
         const conn = {
           write: (str) => { try { ws.send(str); } catch (_) {} },
           destroy: () => { try { ws.close(); } catch (_) {} },
