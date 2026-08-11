@@ -1,0 +1,15 @@
+{
+  "name": "mc-panel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "لوحة سيرفر ماين كرافت — relay + agent",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node relay.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

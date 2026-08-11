@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: mc-panel
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: CONFIG_JSON
+        sync: false
+    healthCheckPath: /api/state
