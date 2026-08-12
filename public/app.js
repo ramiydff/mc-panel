@@ -191,7 +191,7 @@ function Panel({ state, tab, setTab, sel, setSel, say, toast, logout }) {
         ${tab === 'overview' && html`<${Overview} state=${state} live=${live} activeM=${activeM} say=${say} setSel=${setSel} setTab=${setTab} />`}
         ${tab === 'console' && machine && html`<${Console} machine=${machine} say=${say} />`}
         ${tab === 'resources' && machine && html`<${Resources} machine=${machine} />`}
-        ${tab === 'addons' && machine && html`<${Addons} machine=${machine} isOwner=${isOwner} say=${say} />`}
+        ${tab === 'addons' && machine && html`<${Addons} machine=${machine} say=${say} />`}
         ${tab === 'server' && machine && html`<${ServerSettings} machine=${machine} isOwner=${isOwner} say=${say} />`}
         ${tab === 'admin' && isOwner && html`<${Admin} state=${state} say=${say} />`}
 
@@ -473,7 +473,7 @@ function Resources({ machine }) {
     </div>`;
 }
 
-function Addons({ machine, isOwner, say }) {
+function Addons({ machine, say }) {
   const [dirs, setDirs] = useState({});
   const [dir, setDir] = useState('mods');
   const [busy, setBusy] = useState(false);
@@ -520,21 +520,20 @@ function Addons({ machine, isOwner, say }) {
 
   return html`
     <div>
-      ${isOwner && html`
-        <div className="card stack">
-          <div className="row">
-            <div className="text"><div className="t">رفع ملف</div><div className="d">jar للمودات والإضافات، zip لحزم البيانات</div></div>
-            <select className="inp" style=${{ width: 'auto' }} value=${dir} onChange=${(e) => setDir(e.target.value)}>
-              <option value="mods">mods</option><option value="plugins">plugins</option><option value="datapacks">datapacks</option>
-            </select>
-          </div>
-          <div className="drop" onDragOver=${(e) => e.preventDefault()} onDrop=${onDrop}
-            onClick=${() => fileRef.current?.click()}>
-            ${busy ? 'جارٍ الرفع…' : 'اسحب الملفات هنا أو اضغط للاختيار'}
-          </div>
-          <input ref=${fileRef} type="file" style=${{ display: 'none' }}
-            onChange=${(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ''; }} />
-        </div>`}
+      <div className="card stack">
+        <div className="row">
+          <div className="text"><div className="t">رفع ملف</div><div className="d">jar للمودات والإضافات، zip لحزم البيانات</div></div>
+          <select className="inp" style=${{ width: 'auto' }} value=${dir} onChange=${(e) => setDir(e.target.value)}>
+            <option value="mods">mods</option><option value="plugins">plugins</option><option value="datapacks">datapacks</option>
+          </select>
+        </div>
+        <div className="drop" onDragOver=${(e) => e.preventDefault()} onDrop=${onDrop}
+          onClick=${() => fileRef.current?.click()}>
+          ${busy ? 'جارٍ الرفع…' : 'اسحب الملفات هنا أو اضغط للاختيار'}
+        </div>
+        <input ref=${fileRef} type="file" style=${{ display: 'none' }}
+          onChange=${(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ''; }} />
+      </div>
 
       ${['mods', 'plugins', 'datapacks'].map((d) => html`
         <div key=${d}>
@@ -546,9 +545,8 @@ function Addons({ machine, isOwner, say }) {
                 <span className=${'dot ' + (a.enabled ? 'on' : 'off')} />
                 <span className="nm">${a.name}</span>
                 <span className="note" style=${{ whiteSpace: 'nowrap' }}>${a.sizeMb.toFixed(1)} م.ب</span>
-                ${isOwner && html`
-                  <button className="btn quiet sm" onClick=${() => toggle(d, a.file)}>${a.enabled ? 'تعطيل' : 'تفعيل'}</button>
-                  <button className="btn quiet sm" onClick=${() => del(d, a.file)}>حذف</button>`}
+                <button className="btn quiet sm" onClick=${() => toggle(d, a.file)}>${a.enabled ? 'تعطيل' : 'تفعيل'}</button>
+                <button className="btn quiet sm" onClick=${() => del(d, a.file)}>حذف</button>
               </div>`)}
           </div>
         </div>`)}
